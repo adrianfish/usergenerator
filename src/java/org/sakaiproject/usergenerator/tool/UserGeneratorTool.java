@@ -54,49 +54,43 @@ import org.sakaiproject.user.api.User;
  * 
  * @author Adrian Fish (a.fish@lancaster.ac.uk)
  */
-public class UserGeneratorTool extends HttpServlet
-{
+public class UserGeneratorTool extends HttpServlet {
+
 	private Logger logger = Logger.getLogger(UserGeneratorTool.class);
 
 	private SakaiProxy sakaiProxy;
 
-	public void destroy()
-	{
-		logger.info("destroy");
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		super.destroy();
-	}
-
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-	{
-		if (logger.isDebugEnabled()) logger.debug("doGet()");
+		logger.debug("doGet()");
 		
-		if(sakaiProxy == null)
+		if(sakaiProxy == null) {
 			throw new ServletException("yaftForumService and sakaiProxy MUST be initialised.");
+        }
 		
 		User user = sakaiProxy.getCurrentUser();
 		
-		if(user == null)
-		{
+		if (user == null) {
 			// We are not logged in
 			throw new ServletException("getCurrentUser returned null.");
 		}
+
+        String sakaiHtmlHead = (String) request.getAttribute("sakai.html.head");
+        request.setAttribute("sakaiHtmlHead", sakaiHtmlHead);
 		
-		request.getSession().setAttribute("toolId", sakaiProxy.getCurrentToolId());
+		request.setAttribute("toolId", sakaiProxy.getCurrentToolId());
 
 		response.setContentType("text/html");
 		RequestDispatcher dispatcher = this.getServletContext().getRequestDispatcher("/usergenerator.jsp");
 		dispatcher.include(request, response);
 	}
 	
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-	{
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
 		String action = request.getParameter("action");
 		
-		if("create".equals(action))
-		{
-			if(!handleCreate(request,response))
-			{
+		if ("create".equals(action)) {
+			if (!handleCreate(request,response)) {
 				response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,"Failed to create the users.");
 				return;
 			}
@@ -105,9 +99,7 @@ public class UserGeneratorTool extends HttpServlet
 			RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/report.jsp");
 			dispatcher.include(request, response);
 			return;
-		}
-		else if("downloadReport".equals(action))
-		{
+		} else if ("downloadReport".equals(action)) {
 			List<UGUser> users = (List<UGUser>) request.getSession().getAttribute("users");
 			
 			HSSFWorkbook wb = new HSSFWorkbook();
@@ -120,8 +112,7 @@ public class UserGeneratorTool extends HttpServlet
 			headerRow.createCell(3).setCellValue("Password");
 			
 			int rowNum = 1;
-			for(UGUser user : users)
-			{
+			for (UGUser user : users) {
 				HSSFRow row = sheet.createRow(rowNum++);
 				row.createCell(0).setCellValue(user.email);
 				row.createCell(1).setCellValue(user.firstName);
@@ -145,8 +136,7 @@ public class UserGeneratorTool extends HttpServlet
 		
 		FileItem fi = (FileItem) request.getAttribute("file");
 		
-		if(fi == null)
-		{
+		if (fi == null) {
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Where's the file?");
 			return;
 		}
@@ -157,61 +147,56 @@ public class UserGeneratorTool extends HttpServlet
 		
 		List<UGUser> users = new ArrayList<UGUser>();
 		
-		try
-		{
-			if(fi.getName().endsWith(".xls")) {
+		try {
+			if (fi.getName().endsWith(".xls")) {
 				POIFSFileSystem fs = new POIFSFileSystem(new ByteArrayInputStream(data));
 				HSSFWorkbook wb = new HSSFWorkbook(fs);
 				HSSFSheet sheet = wb.getSheetAt(0);
 			
-				for(Iterator rows = sheet.iterator();rows.hasNext();)
-				{
+				for (Iterator rows = sheet.iterator();rows.hasNext();) {
 					HSSFRow row = (HSSFRow) rows.next();
 				
-					if(row.getPhysicalNumberOfCells() < 3) continue;
+					if (row.getPhysicalNumberOfCells() < 3) continue;
 				
 					HSSFCell firstNameCell = row.getCell(0);
-					if(HSSFCell.CELL_TYPE_STRING != firstNameCell.getCellType()) continue;
+					if (HSSFCell.CELL_TYPE_STRING != firstNameCell.getCellType()) continue;
 					String firstName = firstNameCell.getStringCellValue().trim();
 				
 					HSSFCell lastNameCell = row.getCell(1);
-					if(HSSFCell.CELL_TYPE_STRING != lastNameCell.getCellType()) continue;
+					if (HSSFCell.CELL_TYPE_STRING != lastNameCell.getCellType()) continue;
 					String lastName = lastNameCell.getStringCellValue().trim();
 				
 					HSSFCell emailCell = row.getCell(2);
-					if(HSSFCell.CELL_TYPE_STRING != emailCell.getCellType()) continue;
+					if (HSSFCell.CELL_TYPE_STRING != emailCell.getCellType()) continue;
 					String email = emailCell.getStringCellValue().trim().toLowerCase();
 				
 					users.add(new UGUser(firstName,lastName,email));
 				}
-			} else if(fi.getName().endsWith(".xlsx")) {
+			} else if (fi.getName().endsWith(".xlsx")) {
 				XSSFWorkbook wb = new XSSFWorkbook(new ByteArrayInputStream(data));
 				XSSFSheet sheet = wb.getSheetAt(0);
 			
-				for(Iterator rows = sheet.iterator();rows.hasNext();)
-				{
+				for (Iterator rows = sheet.iterator();rows.hasNext();) {
 					XSSFRow row = (XSSFRow) rows.next();
 				
-					if(row.getPhysicalNumberOfCells() < 3) continue;
+					if (row.getPhysicalNumberOfCells() < 3) continue;
 				
 					XSSFCell firstNameCell = row.getCell(0);
-					if(XSSFCell.CELL_TYPE_STRING != firstNameCell.getCellType()) continue;
+					if (XSSFCell.CELL_TYPE_STRING != firstNameCell.getCellType()) continue;
 					String firstName = firstNameCell.getStringCellValue().trim();
 				
 					XSSFCell lastNameCell = row.getCell(1);
-					if(XSSFCell.CELL_TYPE_STRING != lastNameCell.getCellType()) continue;
+					if (XSSFCell.CELL_TYPE_STRING != lastNameCell.getCellType()) continue;
 					String lastName = lastNameCell.getStringCellValue().trim();
 				
 					XSSFCell emailCell = row.getCell(2);
-					if(XSSFCell.CELL_TYPE_STRING != emailCell.getCellType()) continue;
+					if (XSSFCell.CELL_TYPE_STRING != emailCell.getCellType()) continue;
 					String email = emailCell.getStringCellValue().trim().toLowerCase();
 				
 					users.add(new UGUser(firstName,lastName,email));
 				}
 			}
-		}
-		catch(IOException ioe)
-		{
+		} catch(IOException ioe) {
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "I need an Excel file.");
 			return;
 		}
@@ -225,13 +210,13 @@ public class UserGeneratorTool extends HttpServlet
 		dispatcher.include(request, response);
 	}
 	
-	private boolean handleCreate(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-	{
+	private boolean handleCreate(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
 		List<UGUser> users = (List<UGUser>) request.getSession().getAttribute("users");
 		
 		String role = request.getParameter("role");
 		
-		if(role == null || role.length() == 0) role = "access";
+		if (role == null || role.length() == 0) role = "access";
 		
 		return sakaiProxy.addUsers(users,role);
 	}
@@ -239,18 +224,15 @@ public class UserGeneratorTool extends HttpServlet
 	/**
 	 * Sets up the SakaiProxy instance
 	 */
-	public void init(ServletConfig config) throws ServletException
-	{
+	public void init(ServletConfig config) throws ServletException {
+
 		super.init(config);
 
-		if (logger.isDebugEnabled()) logger.debug("init");
+		logger.debug("init");
 
-		try
-		{
+		try {
 			sakaiProxy = new SakaiProxy();
-		}
-		catch (Throwable t)
-		{
+		} catch (Throwable t) {
 			throw new ServletException("Failed to initialise UserGeneratorTool servlet.", t);
 		}
 	}

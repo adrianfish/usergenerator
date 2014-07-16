@@ -8,12 +8,13 @@
   	<name>USERGENERATOR</name>
   	<groupId>org.sakaiproject.usergenerator</groupId>
   	<artifactId>usergenerator</artifactId>
-  	<packaging>war</packaging>
+    <packaging>war</packaging>
 
 	<parent>
-        <groupId>org.sakaiproject.purepoms</groupId>
-        <artifactId>sakai-standard-tool</artifactId>
-        <version>2.6.3</version> <!-- 2.6.x build -->
+        <groupId>org.sakaiproject</groupId>
+        <artifactId>master</artifactId>
+        <version>11-SNAPSHOT</version>
+        <relativePath>../master/pom.xml</relativePath>
     </parent>
 
   	<dependencies>
