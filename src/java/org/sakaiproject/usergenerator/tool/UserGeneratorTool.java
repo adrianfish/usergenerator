@@ -64,7 +64,7 @@ public class UserGeneratorTool extends HttpServlet {
 
 		logger.debug("doGet()");
 		
-		if(sakaiProxy == null) {
+		if (sakaiProxy == null) {
 			throw new ServletException("yaftForumService and sakaiProxy MUST be initialised.");
         }
 		
@@ -76,7 +76,7 @@ public class UserGeneratorTool extends HttpServlet {
 		}
 
         String sakaiHtmlHead = (String) request.getAttribute("sakai.html.head");
-        request.setAttribute("sakaiHtmlHead", sakaiHtmlHead);
+        request.getSession().setAttribute("sakaiHtmlHead", sakaiHtmlHead);
 		
 		request.setAttribute("toolId", sakaiProxy.getCurrentToolId());
 
@@ -94,6 +94,8 @@ public class UserGeneratorTool extends HttpServlet {
 				response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,"Failed to create the users.");
 				return;
 			}
+
+		    request.setAttribute("toolId", sakaiProxy.getCurrentToolId());
 			
 			response.setContentType("text/html");
 			RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/report.jsp");
@@ -204,6 +206,8 @@ public class UserGeneratorTool extends HttpServlet {
 		request.getSession().setAttribute("users", users);
 		
 		request.setAttribute("roles", sakaiProxy.getRolesInCurrentSite());
+
+        request.setAttribute("toolId", sakaiProxy.getCurrentToolId());
 			
 		response.setContentType("text/html");
 		RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/userconfirmation.jsp");
